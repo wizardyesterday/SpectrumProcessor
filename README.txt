@@ -5,8 +5,8 @@ analyzer app so that I could display the log power spectrum of the IQ
 data.
 
 This particalar app accepts IQ data from stdin and allows computation of
-spectral power over a specified two-idedandwidth about center frequency. This
-is useful when computing the power of a narrowband signal. There is no
+spectral power over a specified two-sided bandwidth about center frequency.
+This is useful when computing the power of a narrowband signal. There is no
 display of the spectrum since I'm only interested in numerical values of
 the power. Using these numerical values,  I can average these mean-squared
 values and compute the log-power.
