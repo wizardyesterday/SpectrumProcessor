@@ -52,10 +52,10 @@
 // This structure is used to consolidate user parameters.
 struct MyParameters
 {
+  uint32_t *numberToAveragePtr;
   float *sampleRatePtr;
   float *bandwidthInHzPtr;
   bool *unsignedSamplesPtr;
-  bool *iqDumpPtr;
 };
 
 /*****************************************************************************
@@ -92,11 +92,14 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   // Default parameters.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
+  // Default to no averaging.
+  *parameters.numberToAveragePtr = 1;
+
   // Default to 256000S/s.
   *parameters.sampleRatePtr = 256000;
 
-  // Default to 10000Hz.
-  *parameters.bandwidthInHzPtr = 10000;
+  // Default to 1000Hz.
+  *parameters.bandwidthInHzPtr = 1000;
 
   // Default to signed IQ samples.
   *parameters.unsignedSamplesPtr = false;
@@ -111,10 +114,16 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   while (!done)
   {
     // Retrieve the next option.
-    opt = getopt(argc,argv,"d:r:B:Uh");
+    opt = getopt(argc,argv,"n:r:B:Uh");
 
     switch (opt)
     {
+      case 'n':
+      {
+        *parameters.numberToAveragePtr = atol(optarg);
+        break;
+      } // case
+
       case 'r':
       {
         *parameters.sampleRatePtr = atof(optarg);
@@ -136,8 +145,7 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
       case 'h':
       {
         // Display usage.
-        fprintf(stderr,"./analyzer -d [1 - magnitude | 2 - spectrum |"
-                " 3 - lissajous]\n"
+        fprintf(stderr,"./analyzer -n numbertoaverage\n"
                 "           -r samplerate (S/s) \n"
                 "           -B bandwidthInHz (Hz)\n"
                 "           -U (unsigned samples)\n");
@@ -169,18 +177,19 @@ int main(int argc,char **argv)
   bool done;
   int8_t *signedBufferPtr;
   bool exitProgram;
-  uint32_t i;
+  uint32_t i, j;
   uint32_t count;
   uint8_t inputBuffer[16384];
   SpectrumProcessor *analyzerPtr;
-  int displayType;
+  uint32_t numberToAverage;
   float sampleRate;
   bool unsignedSamples;
   float bandwidthInHz;
-  float power;
+  float power, logPower;
   struct MyParameters parameters;
 
   // Set up for parameter transmission.
+  parameters.numberToAveragePtr = &numberToAverage;
   parameters.sampleRatePtr = &sampleRate;
   parameters.bandwidthInHzPtr = &bandwidthInHz;
   parameters.unsignedSamplesPtr = &unsignedSamples;
@@ -224,12 +233,25 @@ int main(int argc,char **argv)
         } // for
       } // if
 
-      // Compute the power within the specified bandwidth.
-      power = analyzerPtr->computeSpectralPower(bandwidthInHz,
-                                                signedBufferPtr,
-                                                count);
+      // Initialize sum.
+      power = 0;
 
-      fprintf(stdout,"%f\n",power);
+      for (j = 0; j < numberToAverage; j++)
+      {
+        // Compute the power within the specified bandwidth.
+        power += analyzerPtr->computeSpectralPower(bandwidthInHz,
+                                                   signedBufferPtr,
+                                                   count);
+      } // for
+
+      // Normalize to mean value.
+      power /= numberToAverage;
+
+      logPower = 10*log10(power);
+      fprintf(stdout,"%f    %f\n",power,logPower);
+
+      // Bail out.
+      done = true;
 
     } // else
   } // while
