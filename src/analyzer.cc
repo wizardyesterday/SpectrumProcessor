@@ -11,11 +11,15 @@
 //
 // To run this program type,
 // 
-//    ./analyzer -n <numberToAverage> -r <sampleRate> -B <BandwidthInHz>
-//              -U < inputFile
+//    ./analyzer -t <tag> -n <numberToAverage> -r <sampleRate>
+//              -B <BandwidthInHz> -U < inputFile
 //
 //
 // where,
+//
+//    tag - A user-supplied integer tag that will be written to stdout
+//    along with other data. For example, it might be a gain setting
+//    on a signal source such as a radio.
 //
 //    numberOfAverages - The number of power levels to average before
 //    outputing a mean value of accumulated spectral power levels.
@@ -42,6 +46,7 @@
 // This structure is used to consolidate user parameters.
 struct MyParameters
 {
+  int *tagPtr;
   uint32_t *numberToAveragePtr;
   float *sampleRatePtr;
   float *bandwidthInHzPtr;
@@ -82,6 +87,9 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   // Default parameters.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
+  // This is a reasonable value.
+  *parameters.tagPtr = 0;
+
   // Default to no averaging.
   *parameters.numberToAveragePtr = 1;
 
@@ -104,10 +112,16 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   while (!done)
   {
     // Retrieve the next option.
-    opt = getopt(argc,argv,"n:r:B:Uh");
+    opt = getopt(argc,argv,"t:n:r:B:Uh");
 
     switch (opt)
     {
+      case 't':
+      {
+        *parameters.tagPtr = atoi(optarg);
+        break;
+      } // case
+
       case 'n':
       {
         *parameters.numberToAveragePtr = atol(optarg);
@@ -135,7 +149,8 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
       case 'h':
       {
         // Display usage.
-        fprintf(stderr,"./analyzer -n numbertoaverage\n"
+        fprintf(stderr,"./analyzer -t tag\n"
+                "           -n numbertoaverage\n"
                 "           -r samplerate (S/s) \n"
                 "           -B bandwidthInHz (Hz)\n"
                 "           -U (unsigned samples)\n");
@@ -171,6 +186,7 @@ int main(int argc,char **argv)
   uint32_t count;
   uint8_t inputBuffer[16384];
   SpectrumProcessor *analyzerPtr;
+  int tag;
   uint32_t numberToAverage;
   float sampleRate;
   bool unsignedSamples;
@@ -179,6 +195,7 @@ int main(int argc,char **argv)
   struct MyParameters parameters;
 
   // Set up for parameter transmission.
+  parameters.tagPtr = &tag;
   parameters.numberToAveragePtr = &numberToAverage;
   parameters.sampleRatePtr = &sampleRate;
   parameters.bandwidthInHzPtr = &bandwidthInHz;
@@ -238,7 +255,7 @@ int main(int argc,char **argv)
       power /= numberToAverage;
 
       logPower = 10*log10(power);
-      fprintf(stdout,"%f    %f\n",power,logPower);
+      fprintf(stdout,"%d    %0.2f    %0.2f\n",tag,power,logPower);
 
       // Bail out.
       done = true;
@@ -252,3 +269,4 @@ int main(int argc,char **argv)
   return (0);
 
 } // main
+
