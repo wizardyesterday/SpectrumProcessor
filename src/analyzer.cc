@@ -3,42 +3,32 @@
 //*************************************************************************
 
 //*************************************************************************
-// This program provides the ability to display either the magnitude of
+// This program provides the ability to compute the average spectral
+// power of a signal of interest.
 // IQ (In-phase or Quadrature) signals that are provided by stdin.  The
 // data is 8-bit signed 2's complement, and is formatted as
 // I1,Q1; I2,Q2; ...
-// This program can also pass raw IQ data to stdout if required.
 //
 // To run this program type,
 // 
-//    ./analyzer -d <displaytype> -r <sampleRate> -V <verticalgain>
-//              -R <referenceLevel -U -D < inputFile
+//    ./analyzer -n <numberToAverage> -r <sampleRate> -B <BandwidthInHz>
+//              -U < inputFile
+//
 //
 // where,
 //
-//    displayType - The type of display.  Valid values are;
-//    1 - Magnitude display.
-//    2 - Power spectrum display.
-//    3 - Lissajous display.
+//    numberOfAverages - The number of power levels to average before
+//    outputing a mean value of accumulated spectral power levels.
 //
-//    he R flag sets the reference level on the spectrum analyzer display.
+//    sampleRate - The sample rate of the IQ data in S/s.
 //
-//    The V flag sets the vertical gain of the signal yo be displayed on
-//    the spectrum analyzer display.
+//    bandwidthInHz - The teo-sided bandwidth about the signal of
+//    of interest.
 //
 //    The U flag indicates that the IQ samples are unsigned 8-bit
 //    quantities rather than the default signed values.  This allows
 //    this program to work with the standard rtl-sdr tools such as
 //    rtl_sdr.
-//
-//    The D flag indicates that raw IQ data should be dumped to stdout.
-//    This allows the data to be piped to another program.  Here's how
-//    to do this (for example, using a spectral display):
-//    ./analyzer -d 2 > >(other program to accept IQ data).
-//
-//    sampleRate - The sample rate of the IQ data in S/s.
-//
-//    referenceLevel - The reference level of the spectrum display in dB.
 //
 ///*************************************************************************
 #include <stdio.h>
