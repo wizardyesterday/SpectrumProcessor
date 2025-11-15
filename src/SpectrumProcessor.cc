@@ -184,14 +184,14 @@ float SpectrumProcessor::computeSpectralPower(
   // Compute the number of FFT bins for the lowpass span.
   lowpassSpan = (uint32_t)(lowpassBandwidthInHz / fftBinResolutionInHz);
 
-  // Compute lower FFT bin index.
-  lowerBinIndex = (N/2) - lowpassSpan;
+  // Compute lower FFT bin index. Let's be safe.
+  lowerBinIndex = (N/2) - lowpassSpan + 1;
 
-  // Compute upper FFT bin index.
-  upperBinIndex = (N/2) + lowpassSpan;
+  // Compute upper FFT bin index. Let's be safe.
+  upperBinIndex = (N/2) + lowpassSpan - 1;
 
   // Run the FFT.
-  spectrumLength =computePowerSpectrum(signalBufferPtr,bufferLength);
+  spectrumLength = computePowerSpectrum(signalBufferPtr,bufferLength);
 
   // Compute power within the specified bandwidth.
   for (i = lowerBinIndex; i <= upperBinIndex; i++)
