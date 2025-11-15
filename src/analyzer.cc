@@ -28,7 +28,7 @@
 //
 //    bandwidthInHz - The one-sided bandwidth about the signal of
 //    of interest. Because complex samples are being used, ultimately,
-//    this will be mmapped to a two-sided bandwidth.
+//    this will be mapped to a two-sided bandwidth.
 //
 //    The U flag indicates that the IQ samples are unsigned 8-bit
 //    quantities rather than the default signed values.  This allows
