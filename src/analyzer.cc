@@ -47,7 +47,7 @@
 #include <math.h>
 #include <unistd.h>
 
-#include "SignalAnalyzer.h"
+#include "SpectrumProcessor.h"
 
 // This structure is used to consolidate user parameters.
 struct MyParameters
@@ -93,17 +93,9 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Default parameters.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Default oscilloscope display.
-  *parameters.displayTypePtr = SignalMagnitude;
 
   // Default to 256000S/s.
   *parameters.sampleRatePtr = 256000;
-
-  // Default to no amplification.
-  *parameters.verticalGainPtr = 1;
-
-  // Default to 0dB reference level.
-  *parameters.spectrumReferenceLevelPtr = 0;
 
   // Default to signed IQ samples.
   *parameters.unsignedSamplesPtr = false;
@@ -125,27 +117,9 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
 
     switch (opt)
     {
-      case 'd':
-      {
-        *parameters.displayTypePtr = atoi(optarg);
-        break;
-      } // case
-
       case 'r':
       {
         *parameters.sampleRatePtr = atof(optarg);
-        break;
-      } // case
-
-      case 'V':
-      {
-        *parameters.verticalGainPtr = atof(optarg);
-        break;
-      } // case
-
-      case 'R':
-      {
-        *parameters.spectrumReferenceLevelPtr = atol(optarg);
         break;
       } // case
 
@@ -202,7 +176,7 @@ int main(int argc,char **argv)
   uint32_t i;
   uint32_t count;
   uint8_t inputBuffer[16384];
-  SignalAnalyzer *analyzerPtr;
+//  SignalAnalyzer *analyzerPtr;
   int displayType;
   float sampleRate;
   bool unsignedSamples;
@@ -212,11 +186,8 @@ int main(int argc,char **argv)
   struct MyParameters parameters;
 
   // Set up for parameter transmission.
-  parameters.displayTypePtr = &displayType;
   parameters.sampleRatePtr = &sampleRate;
   parameters.unsignedSamplesPtr = &unsignedSamples;
-  parameters.verticalGainPtr = &verticalGain;
-  parameters.spectrumReferenceLevelPtr = &spectrumReferenceLevel;
   parameters.iqDumpPtr = &iqDump;
 
   // Retrieve the system parameters.
@@ -228,11 +199,13 @@ int main(int argc,char **argv)
     return (0);
   } // if
 
-  // Instantiate signal analyzer.
+#if 0
+  / Instantiate signal analyzer.
   analyzerPtr = new SignalAnalyzer((DisplayType)displayType,
                                    sampleRate,
                                    verticalGain,
                                    spectrumReferenceLevel);
+#endif
 
   // Reference the input buffer in 8-bit signed context.
   signedBufferPtr = (int8_t *)inputBuffer;
@@ -261,28 +234,6 @@ int main(int argc,char **argv)
         } // for
       } // if
 
-      switch (displayType)
-      {
-        case SignalMagnitude:
-        {
-          analyzerPtr->plotSignalMagnitude(signedBufferPtr,count);
-          break;
-        } // case
-
-        case PowerSpectrum:
-        {
-          analyzerPtr->plotPowerSpectrum(signedBufferPtr,count);
-          break;
-        } // case
-
-        case Lissajous:
-        {
-          analyzerPtr->plotLissajous(signedBufferPtr,count);
-          break;
-        } // case
-
-      } // switch
-
       if (iqDump == true)
       {
         // Write to stdout so that raw IQ can be piped to another program.
@@ -292,8 +243,10 @@ int main(int argc,char **argv)
     } // else
   } // while
 
+#if 0
   // Release resources.
   delete analyzerPtr;
+#endif
 
   return (0);
 

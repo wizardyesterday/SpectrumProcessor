@@ -29,7 +29,7 @@ class SpectrumProcessor
   SpectrumProcessor(float sampleRate);
   ~SpectrumProcessor(void);
 
-  float computeSpectralPower(lowPassBandwidth);
+  float computeSpectralPower(float lowpassBandwidth);
 
   private:
 
@@ -37,7 +37,7 @@ class SpectrumProcessor
   // Utility functions.
   //*******************************************************************
   void initializeFftw(void);
-  computePowerSpectrum(int8_t *signalBufferPtr,uint32_t bufferLength);
+  uint32_t computePowerSpectrum(int8_t *signalBufferPtr,uint32_t bufferLength);
 
   //*******************************************************************
   // Attributes.
@@ -58,5 +58,6 @@ class SpectrumProcessor
   fftw_complex *fftInputPtr;
   fftw_complex *fftOutputPtr;
   fftw_plan fftPlan;
+};
 
 #endif // __SPECTRUMPROCESSOR__

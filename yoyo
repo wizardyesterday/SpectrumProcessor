@@ -1,0 +1,6 @@
+src/analyzer.cc: In function `bool getUserArguments(int, char**, MyParameters)
+   ':
+src/analyzer.cc:97: error: `SignalMagnitude' undeclared (first use this 
+   function)
+src/analyzer.cc:97: error: (Each undeclared identifier is reported only once 
+   for each function it appears in.)
