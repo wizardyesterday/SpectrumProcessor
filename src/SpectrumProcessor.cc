@@ -39,6 +39,9 @@ SpectrumProcessor::SpectrumProcessor(float sampleRate)
     sampleRate = 256000;
   } // if
 
+  // Save for later use.
+  this->sampleRate = sampleRate;
+
   // We need to know the FFT bin resolution.
   fftBinResolutionInHz = sampleRate / N;
 
@@ -140,7 +143,7 @@ void SpectrumProcessor::initializeFftw(void)
 
   Inputs:
 
-    lowpassBandwidth - The single-sided bandwidth of interest.
+    lowpassBandwidthInHz - The single-sided bandwidth of interest.
 
  Outputs:
 
@@ -148,7 +151,7 @@ void SpectrumProcessor::initializeFftw(void)
     frequency.
 
 *****************************************************************************/
-float SpectrumProcessor::computeSpectralPower(float lowpassBandwidth)
+float SpectrumProcessor::computeSpectralPower(float lowpassBandwidthInHz)
 {
   float power;
   uint32_t i;
@@ -156,11 +159,16 @@ float SpectrumProcessor::computeSpectralPower(float lowpassBandwidth)
   uint32_t upperBinIndex;
   uint32_t lowpassSpan;
 
+  if (lowpassBandwidthInHz > (sampleRate/2))
+  {
+    // Clip it.
+    lowpassBandwidthInHz = sampleRate / 2;
+  } // if
   // Initial value;
   power = 0;
 
   // Compute the number of FFT bins for the lowpass span.
-  lowpassSpan = (uint32_t)(lowpassBandwidth / fftBinResolutionInHz);
+  lowpassSpan = (uint32_t)(lowpassBandwidthInHz / fftBinResolutionInHz);
 
   // Compute lower FFT bin index.
   lowerBinIndex = (N/2) + lowpassSpan;

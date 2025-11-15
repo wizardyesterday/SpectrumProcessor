@@ -29,7 +29,7 @@ class SpectrumProcessor
   SpectrumProcessor(float sampleRate);
   ~SpectrumProcessor(void);
 
-  float computeSpectralPower(float lowpassBandwidth);
+  float computeSpectralPower(float lowpassBandwidthInHz);
 
   private:
 
@@ -43,6 +43,7 @@ class SpectrumProcessor
   // Attributes.
   //*******************************************************************
   // This will be used to mappiing lowpass bandwidth to FFT bin index.
+  float sampleRate;
   float fftBinResolutionInHz;
 
   // This is used for signal power results.
