@@ -144,7 +144,8 @@ void SpectrumProcessor::initializeFftw(void)
 
  Outputs:
 
-    power within the double-sided bandwidth about center frequency.
+    power - The power within the double-sided bandwidth about center
+    frequency.
 
 *****************************************************************************/
 float SpectrumProcessor::computeSpectralPower(float lowpassBandwidth)
