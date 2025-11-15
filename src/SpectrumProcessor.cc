@@ -152,9 +152,27 @@ float SpectrumProcessor::computeSpectralPower(float lowpassBandwidth)
 {
   float power;
   uint32_t i;
+  uint32_t lowerBinIndex;
+  uint32_t upperBinIndex;
+  uint32_t lowpassSpan;
 
   // Initial value;
   power = 0;
+
+  // Compute the number of FFT bins for the lowpass span.
+  lowpassSpan = (uint32_t)(lowpassBandwidth / fftBinResolutionInHz);
+
+  // Compute lower FFT bin index.
+  lowerBinIndex = (N/2) + lowpassSpan;
+
+  // Compute upper FFT bin index.
+  upperBinIndex = (N/2) + lowpassSpan;
+
+  // Computer power within the specified bandwidth.
+  for (i = lowerBinIndex; i <= upperBinIndex; i++)
+  {
+    power += spectralPowerBuffer[i];
+  } // for
 
   return (power);
 
