@@ -52,10 +52,8 @@
 // This structure is used to consolidate user parameters.
 struct MyParameters
 {
-  int *displayTypePtr;
   float *sampleRatePtr;
-  float *verticalGainPtr;
-  int32_t *spectrumReferenceLevelPtr;
+  float *bandwidthInHzPtr;
   bool *unsignedSamplesPtr;
   bool *iqDumpPtr;
 };
@@ -97,11 +95,11 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   // Default to 256000S/s.
   *parameters.sampleRatePtr = 256000;
 
+  // Default to 10000Hz.
+  *parameters.bandwidthInHzPtr = 10000;
+
   // Default to signed IQ samples.
   *parameters.unsignedSamplesPtr = false;
-
-  // Default to not dumping IQ data.
-  *parameters.iqDumpPtr = false;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Set up for loop entry.
@@ -113,7 +111,7 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   while (!done)
   {
     // Retrieve the next option.
-    opt = getopt(argc,argv,"d:r:V:R:UDh");
+    opt = getopt(argc,argv,"d:r:B:Uh");
 
     switch (opt)
     {
@@ -123,15 +121,15 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
         break;
       } // case
 
-      case 'U':
+      case 'B':
       {
-        *parameters.unsignedSamplesPtr = true;
+        *parameters.bandwidthInHzPtr = atof(optarg);
         break;
       } // case
 
-      case 'D':
+      case 'U':
       {
-        *parameters.iqDumpPtr = true;
+        *parameters.unsignedSamplesPtr = true;
         break;
       } // case
 
@@ -141,10 +139,8 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
         fprintf(stderr,"./analyzer -d [1 - magnitude | 2 - spectrum |"
                 " 3 - lissajous]\n"
                 "           -r samplerate (S/s) \n"
-                "           -R spectrumreferencelevel (dB)\n"
-                "           -V Vertical gain of signal to display\n"
-                "           -U (unsigned samples)\n"
-                "           -D (dump raw IQ) < inputFile\n");
+                "           -B bandwidthInHz (Hz)\n"
+                "           -U (unsigned samples)\n");
 
         // Indicate that program must be exited.
         exitProgram = true;
@@ -176,19 +172,18 @@ int main(int argc,char **argv)
   uint32_t i;
   uint32_t count;
   uint8_t inputBuffer[16384];
-//  SignalAnalyzer *analyzerPtr;
+  SpectrumProcessor *analyzerPtr;
   int displayType;
   float sampleRate;
   bool unsignedSamples;
-  float verticalGain;
-  int32_t spectrumReferenceLevel;
-  bool iqDump;
+  float bandwidthInHz;
+  float power;
   struct MyParameters parameters;
 
   // Set up for parameter transmission.
   parameters.sampleRatePtr = &sampleRate;
+  parameters.bandwidthInHzPtr = &bandwidthInHz;
   parameters.unsignedSamplesPtr = &unsignedSamples;
-  parameters.iqDumpPtr = &iqDump;
 
   // Retrieve the system parameters.
   exitProgram = getUserArguments(argc,argv,parameters);
@@ -199,13 +194,8 @@ int main(int argc,char **argv)
     return (0);
   } // if
 
-#if 0
-  / Instantiate signal analyzer.
-  analyzerPtr = new SignalAnalyzer((DisplayType)displayType,
-                                   sampleRate,
-                                   verticalGain,
-                                   spectrumReferenceLevel);
-#endif
+  // Instantiate signal analyzer.
+  analyzerPtr = new SpectrumProcessor(sampleRate);
 
   // Reference the input buffer in 8-bit signed context.
   signedBufferPtr = (int8_t *)inputBuffer;
@@ -234,19 +224,18 @@ int main(int argc,char **argv)
         } // for
       } // if
 
-      if (iqDump == true)
-      {
-        // Write to stdout so that raw IQ can be piped to another program.
-        fwrite(signedBufferPtr,sizeof(int8_t),(2 * N),stdout);
-      } // if
+      // Compute the power within the specified bandwidth.
+      power = analyzerPtr->computeSpectralPower(bandwidthInHz,
+                                                signedBufferPtr,
+                                                count);
+
+      fprintf(stdout,"%f\n",power);
 
     } // else
   } // while
 
-#if 0
   // Release resources.
   delete analyzerPtr;
-#endif
 
   return (0);
 

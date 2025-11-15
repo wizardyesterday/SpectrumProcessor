@@ -29,7 +29,9 @@ class SpectrumProcessor
   SpectrumProcessor(float sampleRate);
   ~SpectrumProcessor(void);
 
-  float computeSpectralPower(float lowpassBandwidthInHz);
+  float computeSpectralPower(float lowpassBandwidthInHz,
+                             int8_t *signalBufferPtr,
+                             uint32_t bufferLength);
 
   private:
 

@@ -140,10 +140,19 @@ void SpectrumProcessor::initializeFftw(void)
   within the specified bandwidth about a signal of interest.
 
   Calling Sequence: power = computeSpectralPower(lowpassBandwidth)
+                                                 signalufferPtr,
+                                                 bufferLength)
 
   Inputs:
 
     lowpassBandwidthInHz - The single-sided bandwidth of interest.
+
+    signalBufferPtr - A pointer to a buffer of IQ data.  The buffer is
+    formatted with interleaved data as: I1,Q1,I2,Q2,...
+
+    bufferLength - The number of values in the signal buffer.  This
+    represents the total number of items in the buffer, rather than
+    the number of IQ sample pairs in the buffer.
 
  Outputs:
 
@@ -151,8 +160,12 @@ void SpectrumProcessor::initializeFftw(void)
     frequency.
 
 *****************************************************************************/
-float SpectrumProcessor::computeSpectralPower(float lowpassBandwidthInHz)
+float SpectrumProcessor::computeSpectralPower(
+  float lowpassBandwidthInHz,
+  int8_t *signalBufferPtr,
+  uint32_t bufferLength)
 {
+  uint32_t spectrumLength;
   float power;
   uint32_t i;
   uint32_t lowerBinIndex;
@@ -164,6 +177,7 @@ float SpectrumProcessor::computeSpectralPower(float lowpassBandwidthInHz)
     // Clip it.
     lowpassBandwidthInHz = sampleRate / 2;
   } // if
+
   // Initial value;
   power = 0;
 
@@ -171,12 +185,15 @@ float SpectrumProcessor::computeSpectralPower(float lowpassBandwidthInHz)
   lowpassSpan = (uint32_t)(lowpassBandwidthInHz / fftBinResolutionInHz);
 
   // Compute lower FFT bin index.
-  lowerBinIndex = (N/2) + lowpassSpan;
+  lowerBinIndex = (N/2) - lowpassSpan;
 
   // Compute upper FFT bin index.
   upperBinIndex = (N/2) + lowpassSpan;
 
-  // Computer power within the specified bandwidth.
+  // Run the FFT.
+  spectrumLength =computePowerSpectrum(signalBufferPtr,bufferLength);
+
+  // Compute power within the specified bandwidth.
   for (i = lowerBinIndex; i <= upperBinIndex; i++)
   {
     power += spectralPowerBuffer[i];
